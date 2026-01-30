@@ -29,7 +29,7 @@ import { WithdrawClaimStruct } from "../typechain-types/contracts/hyperstaking/i
 // full - because there are two differnet vesions of IERC20 used in the project
 export const fullyQualifiedIERC20 = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
 
-export async function toIERC20(contractAddr: Addressable): Promise<IERC20> {
+export async function toIERC20(contractAddr: Addressable | string): Promise<IERC20> {
   return await ethers.getContractAt(
     fullyQualifiedIERC20,
     contractAddr,
