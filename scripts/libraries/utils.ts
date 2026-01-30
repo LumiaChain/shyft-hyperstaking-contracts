@@ -1,4 +1,5 @@
 import { parseUnits, Signer, Interface, TransactionResponse } from "ethers";
+import * as shared from "../../test/shared";
 
 // ------------------ Helpers ------------------
 
@@ -9,6 +10,15 @@ export async function sendEther(fromSigner: Signer, toAddress: string, amountEth
     value: parseUnits(amountEth, 18),
   });
   console.log(`Sent ${amountEth} ETH from ${await fromSigner.getAddress()} to ${toAddress}`);
+  await tx.wait();
+  console.log("tx mined:", tx.hash);
+}
+
+/// Send Ether from one signer to an address
+export async function sendToken(tokenAddress: string, fromSigner: Signer, toAddress: string, amount: bigint) {
+  const token = await shared.toIERC20(tokenAddress);
+  const tx = await token.connect(fromSigner).transfer(toAddress, amount);
+  console.log(`Sent ${amount} units from ${await fromSigner.getAddress()} to ${toAddress}`);
   await tx.wait();
   console.log("tx mined:", tx.hash);
 }
