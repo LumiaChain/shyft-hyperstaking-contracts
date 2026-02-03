@@ -230,12 +230,14 @@ contract SuperformIntegrationFacet is ISuperformIntegration, HyperStakingAcl {
             require(s.superformFactory.isSuperform(superformId), InvalidSuperformId(superformId));
             require(s.superformStrategies.add(strategy), Errors.UpdateFailed());
             LibSuperform.setAuthorizedSuperformId(strategy, superformId);
+
+            emit SuperformStrategyUpdated(strategy, status, superformId);
         } else {
             require(s.superformStrategies.remove(strategy), Errors.UpdateFailed());
             LibSuperform.setAuthorizedSuperformId(strategy, 0);
-        }
 
-        emit SuperformStrategyUpdated(strategy, status, superformId);
+            emit SuperformStrategyUpdated(strategy, status, 0);
+        }
     }
 
     /// @inheritdoc ISuperformIntegration
