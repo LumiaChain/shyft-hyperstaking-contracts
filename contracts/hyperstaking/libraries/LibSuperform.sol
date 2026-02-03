@@ -48,6 +48,7 @@ library LibSuperform {
     error SuperformAlreadyInitialized();
     error SuperformNotConfigured();
     error UnauthorizedSuperformId(address strategy, uint256 requested, uint256 authorized);
+    error AuthorizationNotSet();
 
     function diamondStorage() internal pure returns (SuperformStorage storage s) {
         bytes32 position = SUPERFORM_STORAGE_POSITION;
@@ -86,6 +87,8 @@ library LibSuperform {
     ) internal view {
         SuperformStorage storage s = diamondStorage();
         uint256 authorized = s.authorizedSuperformId[strategy];
+
+        require(authorized != 0, AuthorizationNotSet());
         require(
             authorized == superformId,
             UnauthorizedSuperformId(strategy, superformId, authorized)
