@@ -292,6 +292,8 @@ const errorsIface = new Interface([
   "error RefundFailed()",
   "error HyperlaneReplay(bytes32 msgId)",
   "error Slippage()",
+  "error Slippage()",
+  "error UnauthorizedSuperformId(address strategy, uint256 requested, uint256 authorized)",
 ]);
 export const errors = { interface: errorsIface };
 

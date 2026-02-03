@@ -23,7 +23,7 @@ interface ISuperformIntegration is IERC1155Receiver {
     event SuperformRouterUpdated(address oldRouter, address newRouter);
     event SuperPositionsUpdated(address oldSuperPositions, address newSuperPositions);
 
-    event SuperformStrategyUpdated(address strategy, bool status);
+    event SuperformStrategyUpdated(address strategy, bool status, uint256 superformId);
 
     event SuperformSingleVaultDeposit(
         uint256 indexed superformId,
@@ -94,7 +94,8 @@ interface ISuperformIntegration is IERC1155Receiver {
     /// @dev Updates the status of a Superform strategy
     /// @param strategy The address of the strategy to update
     /// @param status The new status of the strategy (true to enable, false to disable)
-    function updateSuperformStrategies(address strategy, bool status) external;
+    /// @param superformId The superformId the strategy is authorized to use
+    function updateSuperformStrategies(address strategy, bool status, uint256 superformId) external;
 
     /// @dev Sets the maximum slippage used in superform, where 10000 = 100%
     function setMaxSlippage(uint256 newMaxSlippage) external;
@@ -114,6 +115,9 @@ interface ISuperformIntegration is IERC1155Receiver {
     function superformRouter() external view returns (IBaseRouterImplementation);
 
     function superPositions() external view returns (ISuperPositions);
+
+    /// @notice Get the authorized superformId for a strategy
+    function getAuthorizedSuperformId(address strategy) external view returns (uint256);
 
     /// @dev Using the underlying superform function with the same name
     function previewDepositTo(

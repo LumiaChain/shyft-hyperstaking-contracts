@@ -85,9 +85,11 @@ async function deployHyperStaking() {
     vaultTokenSymbol,
   );
 
+  const superformId = await swapSuperStrategy.SUPERFORM_ID();
   await hyperStaking.superformIntegration.connect(signers.strategyManager).updateSuperformStrategies(
     swapSuperStrategy,
     true,
+    superformId,
   );
 
   await hyperStaking.curveIntegration.connect(signers.strategyManager).updateSwapStrategies(
@@ -355,9 +357,11 @@ describe("CurveStrategy", function () {
 
       // ------------------ Add Strategy ------------------
 
+      const superformId = await swapSuperStrategy.SUPERFORM_ID();
       await testSwapIntegration.connect(signers.strategyManager).updateSuperformStrategies(
         swapSuperStrategy,
         true,
+        superformId,
       );
 
       await testSwapIntegration.connect(signers.strategyManager).updateSwapStrategies(
@@ -508,9 +512,11 @@ describe("CurveStrategy", function () {
         .to.be.revertedWithCustomError(testSwapIntegration, "NotFromSuperStrategy")
         .withArgs(strangeStrategy);
 
+      const superformId = await strangeStrategy.SUPERFORM_ID();
       await testSwapIntegration.connect(strategyManager).updateSuperformStrategies(
         strangeStrategy,
         true,
+        superformId,
       );
 
       // OK
