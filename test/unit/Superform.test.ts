@@ -95,6 +95,7 @@ async function deployHyperStaking() {
   await hyperStaking.superformIntegration.connect(signers.strategyManager).updateSuperformStrategies(
     superformStrategy,
     true,
+    superformId,
   );
 
   // -------------------- Setup Checker --------------------
@@ -302,7 +303,7 @@ describe("Superform", function () {
       } = await loadFixture(deployHyperStakingBase);
 
       const {
-        superformFactory, superformRouter, superPositions,
+        superformFactory, superformRouter, superPositions, superVault,
       } = await shared.deploySuperformMock(erc4626Vault);
 
       // missing superformIntegration storage initialization
@@ -319,6 +320,7 @@ describe("Superform", function () {
       await expect(hyperStaking.superformIntegration.connect(signers.strategyManager).updateSuperformStrategies(
         randomStrategy,
         true,
+        0n, // bad superformId
       )).to.be.revertedWithCustomError(
         errors,
         "SuperformNotConfigured",
@@ -344,9 +346,11 @@ describe("Superform", function () {
       );
 
       // OK
+      const superformId = await superformFactory.vaultToSuperforms(superVault, 0);
       await hyperStaking.superformIntegration.connect(signers.strategyManager).updateSuperformStrategies(
         randomStrategy,
         true,
+        superformId, // correct superformId
       );
 
       // cannot initialize again
@@ -534,6 +538,49 @@ describe("Superform", function () {
       const safetyMarginAmount = (await allocation.stakeInfo(superformStrategy)).totalStake * newBridgeSafetyMargin / parseEther("1");
 
       expect(await allocation.checkRevenue(superformStrategy)).to.be.eq(expectedRevenue - safetyMarginAmount);
+    });
+
+    it("should prevent strategy from accessing unauthorized superformId", async function () {
+      const { hyperStaking, superformStrategy, superformId } = await loadFixture(deployHyperStaking);
+      const { superformIntegration, diamond } = hyperStaking;
+
+      const strategyAddress = await superformStrategy.getAddress();
+      const diamondAddress = await diamond.getAddress();
+      const unauthorizedSuperformId = superformId + 1n;
+
+      // Verify strategy is authorized for its superformId
+      expect(await superformIntegration.getAuthorizedSuperformId(strategyAddress))
+        .to.equal(superformId);
+
+      // Impersonate strategy
+      await network.provider.send("hardhat_setBalance", [strategyAddress, "0x21e19e0c9bab2400000"]);
+      await network.provider.send("hardhat_impersonateAccount", [strategyAddress]);
+      const strategySigner = await ethers.getSigner(strategyAddress);
+
+      const amount = parseUnits("1000", 6);
+
+      // Withdraw should revert for unauthorized superformId
+      await expect(
+        superformIntegration.connect(strategySigner)
+          .singleVaultWithdraw(unauthorizedSuperformId, amount, diamondAddress, diamondAddress),
+      ).to.be.revertedWithCustomError(shared.errors, "UnauthorizedSuperformId")
+        .withArgs(strategyAddress, unauthorizedSuperformId, superformId);
+
+      // Transmute should also revert for unauthorized superformId
+      await expect(
+        superformIntegration.connect(strategySigner)
+          .transmuteToERC1155A(diamondAddress, unauthorizedSuperformId, amount, diamondAddress),
+      ).to.be.revertedWithCustomError(shared.errors, "UnauthorizedSuperformId")
+        .withArgs(strategyAddress, unauthorizedSuperformId, superformId);
+
+      // Deposit should also revert for unauthorized superformId
+      await expect(
+        superformIntegration.connect(strategySigner)
+          .singleVaultDeposit(unauthorizedSuperformId, amount, diamondAddress, diamondAddress),
+      ).to.be.revertedWithCustomError(shared.errors, "UnauthorizedSuperformId")
+        .withArgs(strategyAddress, unauthorizedSuperformId, superformId);
+
+      await network.provider.send("hardhat_stopImpersonatingAccount", [strategyAddress]);
     });
   });
 });

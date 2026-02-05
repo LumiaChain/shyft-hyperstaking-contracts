@@ -24,14 +24,20 @@ async function addStrategyToIntegration(
 ) {
   console.log("Strategy Manager:", strategyManager.address);
 
+  // Get a superform ID from the swap strategy
+  const swapStrategy = await ethers.getContractAt("SwapSuperStrategy", SWAP_STRATEGY_ADDRESS);
+  const superformId = await swapStrategy.SUPERFORM_ID();
+  console.log("Superform ID:", superformId.toString());
+
   let tx = await testSwapIntegration.connect(strategyManager).updateSuperformStrategies(
-    SWAP_STRATEGY_ADDRESS,
+    swapStrategy,
     true,
+    superformId,
   );
   await processTx(tx, "Update Superform Strategies");
 
   tx = await testSwapIntegration.connect(strategyManager).updateSwapStrategies(
-    SWAP_STRATEGY_ADDRESS,
+    swapStrategy,
     true,
   );
   await processTx(tx, "Update Swap Strategies");

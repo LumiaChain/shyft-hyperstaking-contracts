@@ -1,6 +1,6 @@
 import { ethers } from "hardhat";
 import { parseUnits, parseEther, formatEther } from "ethers";
-import { sendEther, processTx } from "./libraries/utils";
+import { sendEther, sendToken, processTx } from "./libraries/utils";
 import * as shared from "../test/shared";
 
 // Network-specific ignition parameters
@@ -613,6 +613,7 @@ INFO COMMANDS:
 
 UTILITY COMMANDS:
   send-ether                  Send ETH to an address
+  send-token                  Send ERC20 to an address
 
 USAGE:
   CMD=<command> npx hardhat run scripts/hyper-cli.ts --network <network>
@@ -739,6 +740,19 @@ async function main() {
         signers.strategyManager.address,
         "0.2",
       );
+
+      break;
+    }
+
+    case "send-token": {
+      const { signers } = await getContracts();
+      await sendToken(
+        "0xEC6d6529E8488AAcF2A76826e5dAa08C43630312",
+        signers.alice,
+        signers.bob.address,
+        parseUnits("0.1", 18),
+      );
+
       break;
     }
     default:

@@ -80,18 +80,6 @@ describe("Swap Test Integration", function () {
       },
     });
 
-    // ------------------ Add Strategy ------------------
-
-    await testSwapIntegration.connect(strategyManager).updateSuperformStrategies(
-      swapSuperStrategy,
-      true,
-    );
-
-    await testSwapIntegration.connect(strategyManager).updateSwapStrategies(
-      swapSuperStrategy,
-      true,
-    );
-
     // ------------------ SuperForm ------------------
 
     const superformFactory = await ethers.getContractAt("SuperformFactory", SUPERFORM_FACTORY_ADDRESS);
@@ -115,6 +103,19 @@ describe("Swap Test Integration", function () {
     const superUSDC = await ethers.getContractAt(
       fullyQualifiedIERC20,
       transmutedTokenAddr,
+    );
+
+    // ------------------ Add Strategy ------------------
+
+    await testSwapIntegration.connect(strategyManager).updateSuperformStrategies(
+      swapSuperStrategy,
+      true,
+      superformId,
+    );
+
+    await testSwapIntegration.connect(strategyManager).updateSwapStrategies(
+      swapSuperStrategy,
+      true,
     );
 
     // ------------------ CurveIntegration ------------------

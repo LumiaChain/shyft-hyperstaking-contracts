@@ -36,6 +36,9 @@ struct SuperformStorage {
     ISuperformFactory superformFactory;
     IBaseRouterImplementation superformRouter;
     ISuperPositions superPositions;
+
+    /// @notice Maps strategy address to the superformId
+    mapping(address => uint256) authorizedSuperformId;
 }
 
 library LibSuperform {
@@ -44,18 +47,14 @@ library LibSuperform {
 
     error SuperformAlreadyInitialized();
     error SuperformNotConfigured();
+    error UnauthorizedSuperformId(address strategy, uint256 requested, uint256 authorized);
+    error AuthorizationNotSet();
 
     function diamondStorage() internal pure returns (SuperformStorage storage s) {
         bytes32 position = SUPERFORM_STORAGE_POSITION;
         assembly {
             s.slot := position
         }
-    }
-
-    /// @notice Ensures Superform is initialized
-    function requireInitialized() internal view {
-        SuperformStorage storage s = diamondStorage();
-        require(s.initialized, SuperformNotConfigured());
     }
 
     /// @notice One-time initialization of this storage
@@ -79,5 +78,43 @@ library LibSuperform {
         // add IERC1155Receiver to supportedInterfaces
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
         ds.supportedInterfaces[type(IERC1155Receiver).interfaceId] = true;
+    }
+
+    /// @notice Verify that the calling strategy is authorized for the given superformId
+    function requireAuthorizedSuperformId(
+        address strategy,
+        uint256 superformId
+    ) internal view {
+        SuperformStorage storage s = diamondStorage();
+        uint256 authorized = s.authorizedSuperformId[strategy];
+
+        require(authorized != 0, AuthorizationNotSet());
+        require(
+            authorized == superformId,
+            UnauthorizedSuperformId(strategy, superformId, authorized)
+        );
+    }
+
+    /// @notice Set the authorized superformId for a strategy
+    function setAuthorizedSuperformId(
+        address strategy,
+        uint256 superformId
+    ) internal {
+        SuperformStorage storage s = diamondStorage();
+        s.authorizedSuperformId[strategy] = superformId;
+    }
+
+    /// @notice Get the authorized superformId for a strategy
+    function getAuthorizedSuperformId(
+        address strategy
+    ) internal view returns (uint256) {
+        SuperformStorage storage s = diamondStorage();
+        return s.authorizedSuperformId[strategy];
+    }
+
+    /// @notice Ensures Superform is initialized
+    function requireInitialized() internal view {
+        SuperformStorage storage s = diamondStorage();
+        require(s.initialized, SuperformNotConfigured());
     }
 }

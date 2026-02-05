@@ -79,6 +79,9 @@ contract SuperformIntegrationFacet is ISuperformIntegration, HyperStakingAcl {
         address receiver,
         address receiverSP
     ) external onlySuperStrategy requireStorageInitialized returns (uint256 superPositionReceived) {
+        // verify strategy is authorized for this superformId
+        LibSuperform.requireAuthorizedSuperformId(msg.sender, superformId);
+
         SuperformStorage storage s = LibSuperform.diamondStorage();
 
         require(s.superformFactory.isSuperform(superformId), InvalidSuperformId(superformId));
@@ -129,6 +132,9 @@ contract SuperformIntegrationFacet is ISuperformIntegration, HyperStakingAcl {
         address receiver,
         address receiverSP
     ) external onlySuperStrategy requireStorageInitialized returns (uint256 assetReceived) {
+        // verify strategy is authorized for this superformId
+        LibSuperform.requireAuthorizedSuperformId(msg.sender, superformId);
+
         SuperformStorage storage s = LibSuperform.diamondStorage();
 
         require(s.superformFactory.isSuperform(superformId), InvalidSuperformId(superformId));
@@ -183,6 +189,8 @@ contract SuperformIntegrationFacet is ISuperformIntegration, HyperStakingAcl {
         uint256 assetAmount,
         address receiver
     ) external onlySuperStrategy requireStorageInitialized {
+        LibSuperform.requireAuthorizedSuperformId(msg.sender, superformId);
+
         LibSuperform.diamondStorage().superPositions.transmuteToERC20(
             owner, superformId, assetAmount, receiver
         );
@@ -195,6 +203,8 @@ contract SuperformIntegrationFacet is ISuperformIntegration, HyperStakingAcl {
         uint256 superPositionAmount,
         address receiver
     ) external onlySuperStrategy requireStorageInitialized {
+        LibSuperform.requireAuthorizedSuperformId(msg.sender, superformId);
+
         LibSuperform.diamondStorage().superPositions.transmuteToERC1155A(
             owner, superformId, superPositionAmount, receiver
         );
@@ -210,18 +220,24 @@ contract SuperformIntegrationFacet is ISuperformIntegration, HyperStakingAcl {
     /// @inheritdoc ISuperformIntegration
     function updateSuperformStrategies(
         address strategy,
-        bool status
+        bool status,
+        uint256 superformId
     ) external onlyStrategyManager requireStorageInitialized {
         SuperformStorage storage s = LibSuperform.diamondStorage();
 
         // EnumerableSet returns a boolean indicating success
         if (status) {
+            require(s.superformFactory.isSuperform(superformId), InvalidSuperformId(superformId));
             require(s.superformStrategies.add(strategy), Errors.UpdateFailed());
+            LibSuperform.setAuthorizedSuperformId(strategy, superformId);
+
+            emit SuperformStrategyUpdated(strategy, status, superformId);
         } else {
             require(s.superformStrategies.remove(strategy), Errors.UpdateFailed());
-        }
+            LibSuperform.setAuthorizedSuperformId(strategy, 0);
 
-        emit SuperformStrategyUpdated(strategy, status);
+            emit SuperformStrategyUpdated(strategy, status, 0);
+        }
     }
 
     /// @inheritdoc ISuperformIntegration
@@ -260,6 +276,11 @@ contract SuperformIntegrationFacet is ISuperformIntegration, HyperStakingAcl {
 
     function superPositions() external view returns (ISuperPositions) {
         return LibSuperform.diamondStorage().superPositions;
+    }
+
+    /// @inheritdoc ISuperformIntegration
+    function getAuthorizedSuperformId(address strategy) external view returns (uint256) {
+        return LibSuperform.getAuthorizedSuperformId(strategy);
     }
 
     /// @inheritdoc ISuperformIntegration
