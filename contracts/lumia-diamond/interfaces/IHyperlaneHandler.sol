@@ -2,13 +2,20 @@
 pragma solidity =0.8.27;
 
 import {IMailbox} from "../../external/hyperlane/interfaces/IMailbox.sol";
+import {IMessageRecipient} from "../../external/hyperlane/interfaces/IMessageRecipient.sol";
+import {IPostDispatchHook} from "../../external/hyperlane/interfaces/hooks/IPostDispatchHook.sol";
+import {
+    IInterchainSecurityModule,
+    ISpecifiesInterchainSecurityModule
+} from "../../external/hyperlane/interfaces/IInterchainSecurityModule.sol";
+
 import {RouteInfo, LastMessage} from "../libraries/LibInterchainFactory.sol";
 
 /**
  * @title IHyperlaneHandler
  * @dev Interface for HyperlaneHandlerFacet
  */
-interface IHyperlaneHandler {
+interface IHyperlaneHandler is IMessageRecipient, ISpecifiesInterchainSecurityModule {
     //============================================================================================//
     //                                          Events                                            //
     //============================================================================================//
@@ -21,6 +28,9 @@ interface IHyperlaneHandler {
     );
 
     event MailboxUpdated(address oldMailbox, address newMailbox);
+
+    event HyperlaneISMUpdated(address ism);
+    event HyperlaneHookUpdated(address hook);
 
     event AuthorizedOriginUpdated(
         address originLockbox,
@@ -52,15 +62,6 @@ interface IHyperlaneHandler {
     //============================================================================================//
     //                                          Mutable                                           //
     //============================================================================================//
-
-    /**
-     * @notice Function called by the Mailbox contract when a message is received
-     */
-    function handle(
-        uint32 origin,
-        bytes32 sender,
-        bytes calldata data
-    ) external payable;
 
     /**
      * @notice Bridges a redeem request through hyperlane
@@ -101,6 +102,15 @@ interface IHyperlaneHandler {
         uint32 originDestination
     ) external;
 
+    /**
+     * @notice Sets ISM for this recipient
+     * @dev May be zero for Mailbox default ISM
+     */
+    function setInterchainSecurityModule(IInterchainSecurityModule ism) external;
+
+    /// @notice Sets the post-dispatch hook for outgoing cross-chain messages
+    function setHook(address hook) external;
+
     //============================================================================================//
     //                                           View                                             //
     //============================================================================================//
@@ -116,4 +126,11 @@ interface IHyperlaneHandler {
 
     /// @notice Returns detailed route information for a given strategy
     function getRouteInfo(address strategy) external view returns (RouteInfo memory);
+
+    /**
+     * @notice Returns the post dispatch hook
+     * @dev Required by Hyperlane for relayer simulation and fee quoting
+     *      Returning address(0) will cause the mailbox to use its default hook
+     */
+    function hook() external view returns (IPostDispatchHook);
 }

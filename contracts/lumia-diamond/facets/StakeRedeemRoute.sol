@@ -38,8 +38,17 @@ contract StakeRedeemRoute is IStakeRedeemRoute, LumiaDiamondAcl {
         // address left-padded to bytes32 for compatibility with hyperlane
         bytes32 recipientBytes32 = TypeCasts.addressToBytes32(r.originLockbox);
 
+        // metadata used by the post dispatch hook
+        bytes memory metadata = "";
+
         // msg.value should already include fee calculated
-        ifs.mailbox.dispatch{value: msg.value}(r.originDestination, recipientBytes32, body);
+        ifs.mailbox.dispatch{value: msg.value}(
+            r.originDestination,
+            recipientBytes32,
+            body,
+            metadata,
+            ifs.postDispatchHook
+        );
 
         emit StakeRedeemDispatched(
             address(ifs.mailbox),
@@ -70,7 +79,9 @@ contract StakeRedeemRoute is IStakeRedeemRoute, LumiaDiamondAcl {
         return ifs.mailbox.quoteDispatch(
             r.originDestination,
             TypeCasts.addressToBytes32(r.originLockbox),
-            generateStakeRedeemBody(data)
+            generateStakeRedeemBody(data),
+            "", // metadata
+            ifs.postDispatchHook
         );
     }
 }

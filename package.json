@@ -6,19 +6,19 @@
     "test:integration:ethereum": "FORK=ethereum hardhat test test/integration/eth.test.ts",
     "test:integration:base": "FORK=base hardhat test test/integration/base.test.ts",
     "coverage": "npx hardhat coverage --testfiles test/unit --solcoverjs .solcover.ts",
-    "prettier": "prettier --write --plugin=prettier-plugin-solidity 'contracts/**/*.sol'",
     "lint": "prettier --list-different --plugin=prettier-plugin-solidity 'contracts/**/*.sol' || npx eslint . --ext .js,.ts",
     "check": "solhint -c .solhint.json 'contracts/**/*.sol'",
     "prepare": "husky",
     "docgen": "npx hardhat docgen",
-    "deploy-hyperstaking-holesky": "npx hardhat ignition deploy ignition/modules/HyperStaking.ts --network holesky",
-    "deploy-lumia-diamond-holesky": "npx hardhat ignition deploy ignition/modules/LumiaDiamond.ts --parameters ignition/parameters.holesky.json --network holesky",
-    "deploy-dinero-strategy-holesky": "npx hardhat ignition deploy ignition/modules/DineroStrategy.ts --parameters ignition/parameters.holesky.json --network holesky",
-    "deploy-superform-strategy-holesky": "npx hardhat ignition deploy ignition/modules/SuperformStrategy.ts --parameters ignition/parameters.holesky.json --network holesky"
+    "deploy-hyperstaking-sepolia": "npx hardhat ignition deploy ignition/modules/HyperStaking.ts --parameters ignition/parameters.sepolia.json --network sepolia",
+    "deploy-lumia-diamond-beam": "npx hardhat ignition deploy ignition/modules/LumiaDiamond.ts --parameters ignition/parameters.lumia_beam.json --network lumia_beam",
+    "deploy-dinero-strategy-sepolia": "npx hardhat ignition deploy ignition/modules/DineroStrategy.ts --parameters ignition/parameters.sepolia.json --network sepolia",
+    "deploy-superform-strategy-sepolia": "npx hardhat ignition deploy ignition/modules/SuperformStrategy.ts --parameters ignition/parameters.sepolia.json --network sepolia",
+    "deploy-test-strategy-sepolia": "npx hardhat ignition deploy ignition/modules/test/MockReserveStrategy.ts --parameters ignition/parameters.sepolia.json --network sepolia"
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:orionprotocol/HyperStaking-contracts.git"
+    "url": "git@github.com:LumiaChain/HyperStaking-contracts.git"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-foundry": "^1.1.2",
@@ -27,6 +27,7 @@
     "@typechain/hardhat": "^9.1.0",
     "@types/mocha": "^10.0.7",
     "@types/node": "^22.5.4",
+    "@types/prompt-sync": "^4.2.3",
     "@typescript-eslint/eslint-plugin": "^8.4.0",
     "@typescript-eslint/parser": "^8.4.0",
     "dotenv": "^16.4.5",
@@ -46,6 +47,7 @@
     "npm-run-all": "^4.1.5",
     "prettier": "^3.3.3",
     "prettier-plugin-solidity": "^1.4.1",
+    "prompt-sync": "^4.2.0",
     "solhint": "^5.1.0",
     "solidity-coverage": "^0.8.16",
     "solidity-docgen": "^0.6.0-beta.36",

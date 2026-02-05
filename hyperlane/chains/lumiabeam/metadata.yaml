@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=../schema.json
+blockExplorers:
+  - apiUrl: https://beam-explorer.lumia.org/api
+    family: blockscout
+    name: Lumia Beam Testnet Explorer
+    url: https://beam-explorer.lumia.org
+blocks:
+  confirmations: 1
+  estimateBlockTime: 2
+  reorgPeriod: 5
+chainId: 2030232745
+displayName: Lumia Beam Testnet
+domainId: 2030232745
+isTestnet: true
+name: lumiabeam
+nativeToken:
+  decimals: 18
+  name: Lumia
+  symbol: LUMIA
+protocol: ethereum
+rpcUrls:
+  - http: https://beam-rpc.lumia.org
+technicalStack: polygoncdk
+transactionOverrides:
+  gasPrice: 5000000000

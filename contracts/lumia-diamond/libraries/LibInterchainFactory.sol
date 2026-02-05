@@ -4,6 +4,8 @@ pragma solidity =0.8.27;
 // solhint-disable var-name-mixedcase
 
 import {IMailbox} from "../../external/hyperlane/interfaces/IMailbox.sol";
+import {IPostDispatchHook} from "../../external/hyperlane/interfaces/hooks/IPostDispatchHook.sol";
+import {IInterchainSecurityModule} from "../../external/hyperlane/interfaces/IInterchainSecurityModule.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
@@ -43,6 +45,9 @@ struct InterchainFactoryStorage {
     /// @notice Hyperlane Mailbox
     IMailbox mailbox;
 
+    /// @notice ISM for this recipient (zero if default ISM on the Mailbox is preferred)
+    IInterchainSecurityModule ism;
+
     /// @notice Temporary data about last msg
     LastMessage lastMessage;
     uint256[8] __gap_lastMessage;
@@ -55,6 +60,9 @@ struct InterchainFactoryStorage {
 
     /// @notice Mapping of strategy to its detailed route information
     mapping (address strategy => RouteInfo) routes;
+
+    /// @notice Hook for post-dispatch processing (address(0) = use mailbox default)
+    IPostDispatchHook postDispatchHook;
 }
 
 library LibInterchainFactory {

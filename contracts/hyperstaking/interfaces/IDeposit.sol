@@ -226,7 +226,7 @@ interface IDeposit {
 
     /* ========== */
 
-    /// @notice Helper to easily quote the dispatch fee for stakeDeposit
+    /// @notice Helper to easily quote the dispatch fee for stake deposit
     function quoteDepositDispatch(
         address strategy,
         address to,

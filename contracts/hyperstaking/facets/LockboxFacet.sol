@@ -4,6 +4,7 @@ pragma solidity =0.8.27;
 import {ILockbox} from "../interfaces/ILockbox.sol";
 import {IAllocation} from "../interfaces/IAllocation.sol";
 import {HyperStakingAcl} from "../HyperStakingAcl.sol";
+
 import {IStakeInfoRoute} from "../interfaces/IStakeInfoRoute.sol";
 import {IStakeRewardRoute} from "../interfaces/IStakeRewardRoute.sol";
 
@@ -11,10 +12,12 @@ import {
     StakeInfoData, StakeRewardData, MessageType, HyperlaneMailboxMessages
 } from "../../shared/libraries/HyperlaneMailboxMessages.sol";
 import {IMailbox} from "../../external/hyperlane/interfaces/IMailbox.sol";
+import {IInterchainSecurityModule} from "../../external/hyperlane/interfaces/IInterchainSecurityModule.sol";
+import {IPostDispatchHook} from "../../external/hyperlane/interfaces/hooks/IPostDispatchHook.sol";
 import {TypeCasts} from "../../external/hyperlane/libs/TypeCasts.sol";
 
 import {Currency, CurrencyHandler} from "../../shared/libraries/CurrencyHandler.sol";
-import {NotAuthorized, BadOriginDestination, DispatchUnderpaid } from "../../shared/Errors.sol";
+import {NotAuthorized, BadOriginDestination, DispatchUnderpaid, InvalidHook, InvalidIsm} from "../../shared/Errors.sol";
 
 import {
     LibHyperStaking,
@@ -118,7 +121,7 @@ contract LockboxFacet is ILockbox, HyperStakingAcl {
         );
     }
 
-    /// @inheritdoc ILockbox
+    /// @dev implements hyperlane IMessageRecipient
     function handle(
         uint32 origin,
         bytes32 sender,
@@ -257,11 +260,43 @@ contract LockboxFacet is ILockbox, HyperStakingAcl {
         delete LibHyperStaking.diamondStorage().pendingLumiaFactory;
     }
 
+    /// @inheritdoc ILockbox
+    function setInterchainSecurityModule(IInterchainSecurityModule ism) external onlyVaultManager {
+        require(
+            address(ism) == address(0) || address(ism).code.length > 0,
+            InvalidIsm(address(ism))
+        );
+        LibHyperStaking.diamondStorage().lockboxData.ism = ism;
+        emit HyperlaneISMUpdated(address(ism));
+    }
+
+    /// @inheritdoc ILockbox
+    function setHook(address postDispatchHook) external onlyVaultManager {
+        require(
+            postDispatchHook == address(0) || postDispatchHook.code.length > 0,
+            InvalidHook(postDispatchHook)
+        );
+
+        LibHyperStaking.diamondStorage().lockboxData.postDispatchHook = IPostDispatchHook(postDispatchHook);
+        emit HyperlaneHookUpdated(postDispatchHook);
+    }
+
     // ========= View ========= //
 
     /// @inheritdoc ILockbox
     function lockboxData() external view returns (LockboxData memory) {
         return LibHyperStaking.diamondStorage().lockboxData;
+    }
+
+    /// @notice Called by Mailbox.recipientIsm() to determine which ISM to use
+    /// @dev implements hyperlane ISpecifiesInterchainSecurityModule
+    function interchainSecurityModule() external view returns (IInterchainSecurityModule) {
+        return LibHyperStaking.diamondStorage().lockboxData.ism;
+    }
+
+    /// @inheritdoc ILockbox
+    function hook() external view returns (IPostDispatchHook) {
+        return LibHyperStaking.diamondStorage().lockboxData.postDispatchHook;
     }
 
     /// @inheritdoc ILockbox

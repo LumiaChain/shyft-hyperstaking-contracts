@@ -568,7 +568,7 @@ describe("Lockbox", function () {
         { value: mailboxFee },
       );
 
-      // --- stakeDeposit
+      // --- stake deposit
 
       const stakeAmount = parseEther("5");
 

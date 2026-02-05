@@ -1,23 +1,28 @@
-// SPDX-License-Identifier: MIT
-pragma solidity =0.8.27;
-
-// solhint-disable no-unused-vars
+// SPDX-License-Identifier: MIT OR Apache-2.0
+pragma solidity >=0.8.0;
 
 // ============ Internal Imports ============
-import {Message} from "../external/hyperlane/libs/Message.sol";
-import {TypeCasts} from "../external/hyperlane/libs/TypeCasts.sol";
-import {IInterchainSecurityModule, ISpecifiesInterchainSecurityModule} from "../external/hyperlane/interfaces/IInterchainSecurityModule.sol";
-import {IPostDispatchHook} from "../external/hyperlane/interfaces/hooks/IPostDispatchHook.sol";
-import {IMessageRecipient} from "../external/hyperlane//interfaces/IMessageRecipient.sol";
-import {IMailbox} from "../external/hyperlane/interfaces/IMailbox.sol";
+import {Versioned} from "./upgrade/Versioned.sol";
+import {Indexed} from "./libs/Indexed.sol";
+import {Message} from "./libs/Message.sol";
+import {TypeCasts} from "./libs/TypeCasts.sol";
+import {IInterchainSecurityModule, ISpecifiesInterchainSecurityModule} from "./interfaces/IInterchainSecurityModule.sol";
+import {IPostDispatchHook} from "./interfaces/hooks/IPostDispatchHook.sol";
+import {IMessageRecipient} from "./interfaces/IMessageRecipient.sol";
+import {IMailbox} from "./interfaces/IMailbox.sol";
+import {PackageVersioned} from "./PackageVersioned.sol";
 
 // ============ External Imports ============
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Address} from "@openzeppelin-v4.9.5/contracts/utils/Address.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-/// @dev Test contract based on hyperlane Mailbox
-contract OneChainMailbox is IMailbox, Ownable {
-    uint8 public constant VERSION = 33;
-
+contract Mailbox is
+    IMailbox,
+    Indexed,
+    Versioned,
+    OwnableUpgradeable,
+    PackageVersioned
+{
     // ============ Libraries ============
 
     using Message for bytes;
@@ -27,10 +32,7 @@ contract OneChainMailbox is IMailbox, Ownable {
     // ============ Constants ============
 
     // Domain of chain on which the contract is deployed
-    uint32 public localDomain;
-
-    // TEST - static fee
-    uint256 public hardcodedFee;
+    uint32 public immutable localDomain;
 
     // ============ Public Storage ============
 
@@ -55,28 +57,51 @@ contract OneChainMailbox is IMailbox, Ownable {
         uint48 blockNumber;
     }
 
-    mapping(bytes32 => Delivery) internal deliveries;
+    mapping(bytes32 messageId => Delivery delivery) internal deliveries;
 
-    // ============ Error ============
+    // ============ Events ============
 
-    error MailboxDispatchUnderpaid();
+    /**
+     * @notice Emitted when the default ISM is updated
+     * @param module The new default ISM
+     */
+    event DefaultIsmSet(address indexed module);
+
+    /**
+     * @notice Emitted when the default hook is updated
+     * @param hook The new default hook
+     */
+    event DefaultHookSet(address indexed hook);
+
+    /**
+     * @notice Emitted when the required hook is updated
+     * @param hook The new required hook
+     */
+    event RequiredHookSet(address indexed hook);
 
     // ============ Constructor ============
-
-    constructor(uint256 _fee, uint32 _localDomain) Ownable(msg.sender) {
+    constructor(uint32 _localDomain) {
         localDomain = _localDomain;
-        setFee(_fee);
-        defaultHook = IPostDispatchHook(address(0));
     }
 
-    // TEST - configurable static fee
-    function setFee(uint256 fee) public onlyOwner {
-        hardcodedFee = fee;
+    // ============ Initializers ============
+    function initialize(
+        address _owner,
+        address _defaultIsm,
+        address _defaultHook,
+        address _requiredHook
+    ) external initializer {
+        __Ownable_init(msg.sender);
+        setDefaultIsm(_defaultIsm);
+        setDefaultHook(_defaultHook);
+        setRequiredHook(_requiredHook);
+        transferOwnership(_owner);
     }
 
     // ============ External Functions ============
     /**
      * @notice Dispatches a message to the destination domain & recipient
+     * using the default hook and empty metadata.
      * @param _destinationDomain Domain of destination chain
      * @param _recipientAddress Address of recipient on destination chain as bytes32
      * @param _messageBody Raw bytes content of message body
@@ -171,6 +196,7 @@ contract OneChainMailbox is IMailbox, Ownable {
     /**
      * @notice Attempts to deliver `_message` to its recipient. Verifies
      * `_message` via the recipient's ISM using the provided `_metadata`.
+     * @param _metadata Metadata used by the ISM to verify `_message`.
      * @param _message Formatted Hyperlane message (refer to Message.sol).
      */
     function process(
@@ -181,8 +207,6 @@ contract OneChainMailbox is IMailbox, Ownable {
 
         // Check that the message was intended for this mailbox.
         require(_message.version() == VERSION, "Mailbox: bad version");
-
-        // TEST - don't check domain
         require(
             _message.destination() == localDomain,
             "Mailbox: unexpected destination"
@@ -208,13 +232,10 @@ contract OneChainMailbox is IMailbox, Ownable {
         /// INTERACTIONS ///
 
         // Verify the message via the interchain security module.
-        // TEST - verify only if not zero
-        if (address(ism) != address(0)) {
-            require(
-                ism.verify(_metadata, _message),
-                "Mailbox: ISM verification failed"
-            );
-        }
+        require(
+            ism.verify(_metadata, _message),
+            "Mailbox: ISM verification failed"
+        );
 
         // Deliver the message to the recipient.
         IMessageRecipient(recipient).handle{value: msg.value}(
@@ -250,6 +271,7 @@ contract OneChainMailbox is IMailbox, Ownable {
      * @param recipientAddress Address of recipient on destination chain as bytes32
      * @param messageBody Raw bytes content of message body
      * @param metadata Metadata used by the post dispatch hook
+     * @param hook Custom hook to use instead of the default
      * @return The message ID inserted into the Mailbox's merkle tree
      */
     function dispatch(
@@ -257,8 +279,12 @@ contract OneChainMailbox is IMailbox, Ownable {
         bytes32 recipientAddress,
         bytes calldata messageBody,
         bytes calldata metadata,
-        IPostDispatchHook /* hook */
+        IPostDispatchHook hook
     ) public payable virtual returns (bytes32) {
+        if (address(hook) == address(0)) {
+            hook = defaultHook;
+        }
+
         /// CHECKS ///
 
         // Format the message into packed bytes.
@@ -277,30 +303,45 @@ contract OneChainMailbox is IMailbox, Ownable {
         emit DispatchId(id);
 
         /// INTERACTIONS ///
-        uint256 requiredValue = this.quoteDispatch(destinationDomain, recipientAddress, message);
-        // if underpaying, throw error
+        uint256 requiredValue = requiredHook.quoteDispatch(metadata, message);
+        // if underpaying, defer to required hook's reverting behavior
         if (msg.value < requiredValue) {
-            revert MailboxDispatchUnderpaid();
+            requiredValue = msg.value;
         }
-
-        // TEST - execute process in the same transaction
-        this.process(metadata, message);
+        requiredHook.postDispatch{value: requiredValue}(metadata, message);
+        hook.postDispatch{value: msg.value - requiredValue}(metadata, message);
 
         return id;
     }
 
     /**
      * @notice Computes quote for dispatching a message to the destination domain & recipient.
+     * @param destinationDomain Domain of destination chain
+     * @param recipientAddress Address of recipient on destination chain as bytes32
+     * @param messageBody Raw bytes content of message body
+     * @param metadata Metadata used by the post dispatch hook
+     * @param hook Custom hook to use instead of the default
      * @return fee The payment required to dispatch the message
      */
     function quoteDispatch(
-        uint32 /* destinationDomain */,
-        bytes32 /* recipientAddress */,
-        bytes calldata /* messageBody */,
-        bytes calldata /* metadata */,
-        IPostDispatchHook /* hook */
+        uint32 destinationDomain,
+        bytes32 recipientAddress,
+        bytes calldata messageBody,
+        bytes calldata metadata,
+        IPostDispatchHook hook
     ) public view returns (uint256 fee) {
-        return hardcodedFee;
+        if (address(hook) == address(0)) {
+            hook = defaultHook;
+        }
+
+        bytes memory message = _buildMessage(
+            destinationDomain,
+            recipientAddress,
+            messageBody
+        );
+        return
+            requiredHook.quoteDispatch(metadata, message) +
+            hook.quoteDispatch(metadata, message);
     }
 
     /**
@@ -310,6 +351,45 @@ contract OneChainMailbox is IMailbox, Ownable {
      */
     function delivered(bytes32 _id) public view override returns (bool) {
         return deliveries[_id].blockNumber > 0;
+    }
+
+    /**
+     * @notice Sets the default ISM for the Mailbox.
+     * @param _module The new default ISM. Must be a contract.
+     */
+    function setDefaultIsm(address _module) public onlyOwner {
+        require(
+            Address.isContract(_module),
+            "Mailbox: default ISM not contract"
+        );
+        defaultIsm = IInterchainSecurityModule(_module);
+        emit DefaultIsmSet(_module);
+    }
+
+    /**
+     * @notice Sets the default post dispatch hook for the Mailbox.
+     * @param _hook The new default post dispatch hook. Must be a contract.
+     */
+    function setDefaultHook(address _hook) public onlyOwner {
+        require(
+            Address.isContract(_hook),
+            "Mailbox: default hook not contract"
+        );
+        defaultHook = IPostDispatchHook(_hook);
+        emit DefaultHookSet(_hook);
+    }
+
+    /**
+     * @notice Sets the required post dispatch hook for the Mailbox.
+     * @param _hook The new default post dispatch hook. Must be a contract.
+     */
+    function setRequiredHook(address _hook) public onlyOwner {
+        require(
+            Address.isContract(_hook),
+            "Mailbox: required hook not contract"
+        );
+        requiredHook = IPostDispatchHook(_hook);
+        emit RequiredHookSet(_hook);
     }
 
     /**

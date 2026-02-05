@@ -126,12 +126,9 @@ contract AllocationFacet is IAllocation, HyperStakingAcl, ReentrancyGuardUpgrade
     // ========= Vault Manager ========= //
 
     /// @inheritdoc IAllocation
-    function report(address strategy)
-        external
-        payable
-        onlyVaultManager
-        nonReentrant
-    {
+    function report(
+        address strategy
+    ) external payable onlyVaultManager nonReentrant {
         HyperStakingStorage storage v = LibHyperStaking.diamondStorage();
         VaultInfo storage vault = v.vaultInfo[strategy];
         StakeInfo storage si = v.stakeInfo[strategy];

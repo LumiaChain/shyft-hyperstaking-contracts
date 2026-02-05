@@ -94,23 +94,20 @@ const config: HardhatUserConfig = {
         mnemonic: process.env.WALLET_MNEMONIC,
       },
     },
-    holesky: {
-      url: process.env.HOLESKY_RPC_URL,
-      chainId: 17000,
-      accounts: {
-        mnemonic: process.env.WALLET_MNEMONIC,
-      },
-    },
     // lumia_mainnet: {
     //   url: process.env.LUMIA_MAINNET_RPC_URL,
     //   chainId: 994873017,
     //   accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     // },
-    lumia_testnet: {
+    lumia_beam: {
       url: process.env.LUMIA_TESTNET_RPC_URL,
-      chainId: 1952959480,
+      chainId: 2030232745,
       accounts: {
         mnemonic: process.env.WALLET_MNEMONIC,
+      },
+      ignition: {
+        gasPrice: parseUnits("5", "gwei"),
+        disableFeeBumping: true,
       },
     },
     bsc_testnet: {
@@ -154,6 +151,17 @@ const config: HardhatUserConfig = {
 
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,
+
+    customChains: [
+      {
+        network: "lumia_beam",
+        chainId: 2030232745,
+        urls: {
+          apiURL: "https://beam-explorer.lumia.org:443/api",
+          browserURL: "https://beam-explorer.lumia.org:443",
+        },
+      },
+    ],
   },
 };
 

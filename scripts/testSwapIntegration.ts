@@ -1,6 +1,8 @@
-import { parseUnits, TransactionResponse } from "ethers";
+import { parseUnits } from "ethers";
 import { ethers, HardhatEthersSigner } from "hardhat";
 import { TestSwapIntegration } from "../typechain-types";
+
+import { processTx } from "./libraries/utils";
 
 const stableUnits = (val: string) => parseUnits(val, 6);
 const fullyQualifiedIERC20 = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
@@ -15,23 +17,6 @@ const USDT_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
 
 const CURVE_3POOL_ADDRESS = "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7";
 
-// ------------------ Helpers ------------------
-async function runTx(
-  tx: TransactionResponse,
-  description: string,
-) {
-  console.log(`${description} - TX:`, tx.hash);
-  const receipt = await tx.wait();
-  if (!receipt) {
-    throw new Error(`${description} transaction failed: no receipt`);
-  }
-
-  if (receipt.status !== 1) {
-    throw new Error(`${description} transaction failed`);
-  }
-  console.log("Receipt:", receipt);
-}
-
 // ------------------ Add Strategy ------------------
 async function addStrategyToIntegration(
   testSwapIntegration: TestSwapIntegration,
@@ -43,13 +28,13 @@ async function addStrategyToIntegration(
     SWAP_STRATEGY_ADDRESS,
     true,
   );
-  await runTx(tx, "Update Superform Strategies");
+  await processTx(tx, "Update Superform Strategies");
 
   tx = await testSwapIntegration.connect(strategyManager).updateSwapStrategies(
     SWAP_STRATEGY_ADDRESS,
     true,
   );
-  await runTx(tx, "Update Swap Strategies");
+  await processTx(tx, "Update Swap Strategies");
 }
 
 // ------------------ Register Curve Pool ------------------
@@ -66,7 +51,7 @@ async function registerCurvePool(
     registerTokens,
     indexes,
   );
-  await runTx(tx, "Register Curve Pool");
+  await processTx(tx, "Register Curve Pool");
 };
 
 // -------------------- Allocate ---------------------
@@ -80,11 +65,11 @@ async function allocateToSwapStrategy(
 
   // Approve the integration to spend USDT
   let tx = await usdt.connect(signer).approve(testSwapIntegration, amount);
-  await runTx(tx, "Approve USDT to Swap Integration");
+  await processTx(tx, "Approve USDT to Swap Integration");
 
   // Allocate USDT to the swap strategy
   tx = await testSwapIntegration.connect(signer).allocate(SWAP_STRATEGY_ADDRESS, amount);
-  await runTx(tx, "Allocate USDT to Swap Strategy");
+  await processTx(tx, "Allocate USDT to Swap Strategy");
 }
 
 // -------------------- Exit ---------------------
@@ -101,11 +86,11 @@ async function exitFromSwapStrategy(
 
   // Approve the integration to spend USDT
   let tx = await superUSDC.connect(signer).approve(testSwapIntegration, superAmount);
-  await runTx(tx, "Approve SuperUSDC to Swap Integration");
+  await processTx(tx, "Approve SuperUSDC to Swap Integration");
 
   // Allocate USDT to the swap strategy
   tx = await testSwapIntegration.connect(signer).exit(SWAP_STRATEGY_ADDRESS, superAmount);
-  await runTx(tx, "Exit SuperUSDC from Swap Strategy");
+  await processTx(tx, "Exit SuperUSDC from Swap Strategy");
 }
 
 // ------------------ Main Function ------------------

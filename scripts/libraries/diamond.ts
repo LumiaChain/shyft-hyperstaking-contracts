@@ -121,3 +121,41 @@ export function findAddressPositionInFacets (facetAddress: string, facets: Facet
   }
   return -1;
 }
+
+// find FunctionFragment by selector
+export function findFunctionFragmentBySelector(
+  iface: Interface,
+  selector: string,
+): FunctionFragment | undefined {
+  for (const fragment of iface.fragments) {
+    if (fragment.type !== "function") continue;
+    const fn = fragment as FunctionFragment;
+    if (fn.selector === selector) {
+      return fn;
+    }
+  }
+  return undefined;
+}
+
+// get function signature from selector
+// return undefined if not found
+export function getFunctionSignatureFromSelector(
+  iface: Interface,
+  selector: string,
+): string | undefined {
+  const fragment = findFunctionFragmentBySelector(iface, selector);
+  return fragment?.format("sighash");
+}
+
+// Print selector, if not found in interface, print as hex string
+export function printSelector(
+  iface: Interface,
+  selector: string,
+): string {
+  const sig = getFunctionSignatureFromSelector(iface, selector);
+  if (sig) {
+    return sig;
+  } else {
+    return selector;
+  }
+}

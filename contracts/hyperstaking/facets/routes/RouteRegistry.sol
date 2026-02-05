@@ -34,8 +34,17 @@ contract RouteRegistry is IRouteRegistry, HyperStakingAcl {
         // address left-padded to bytes32 for compatibility with hyperlane
         bytes32 recipientBytes32 = TypeCasts.addressToBytes32(box.lumiaFactory);
 
+        // metadata used by the post dispatch hook
+        bytes memory metadata = "";
+
         // msg.value should already include fee calculated
-        box.mailbox.dispatch{value: msg.value}(box.destination, recipientBytes32, body);
+        box.mailbox.dispatch{value: msg.value}(
+            box.destination,
+            recipientBytes32,
+            body,
+            metadata,
+            box.postDispatchHook
+        );
 
         emit RouteRegistryDispatched(
             address(box.mailbox),
@@ -58,7 +67,9 @@ contract RouteRegistry is IRouteRegistry, HyperStakingAcl {
         return box.mailbox.quoteDispatch(
             box.destination,
             TypeCasts.addressToBytes32(box.lumiaFactory),
-            generateRouteRegistryBody(data)
+            generateRouteRegistryBody(data),
+            "", // metadata
+            box.postDispatchHook
         );
     }
 

@@ -1,0 +1,11 @@
+{
+  "LumiaDiamondModule": {
+    "lumiaMailbox": "0x63386891cc01ff6DaEF27FC349431eD56da17E9d"
+  },
+  "General": {
+    "lumiaDiamond": "0xD8BD0eaacDdA5478F043858CDa43FebAB710f948",
+    "lumiaMailbox": "0x63386891cc01ff6DaEF27FC349431eD56da17E9d",
+    "lumiaISM": "",
+    "originDestination": 11155111
+  }
+}
