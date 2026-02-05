@@ -1,0 +1,17 @@
+{
+  "DiamondModule#DiamondCutFacet": "0x41eEb6eA1E3075Fa1aA7C00aCa736dBBEF3717B7",
+  "DiamondModule#DiamondInit": "0xcAa277fe35c62b129602302468b7b8f6e0aF4029",
+  "DiamondModule#DiamondLoupeFacet": "0xC12726E11Cd4F7A7Ebfc0D9943419BF4E622115f",
+  "DiamondModule#OwnershipFacet": "0x451eB667f3F8159Cc8B4d3481a2293e6c83eF78B",
+  "LumiaDiamondModule#HyperlaneHandlerFacet": "0x5eabFcdDf2e8816CA5E466921c865633C277A7a9",
+  "LumiaDiamondModule#LumiaDiamondInit": "0x2a5eB129Cd2ff04630965BeDb86d4D91aba62c6D",
+  "LumiaDiamondModule#RealAssetsFacet": "0x44850Cb3B646512F76aB5CE8ca6981CB6a58d8D7",
+  "LumiaDiamondModule#StakeRedeemRoute": "0xC7a4Ba49BBF8Ab1577e60E8cfB6F17098159a549",
+  "DiamondModule#Diamond": "0xD8BD0eaacDdA5478F043858CDa43FebAB710f948",
+  "DiamondModule#IDiamondCut": "0xD8BD0eaacDdA5478F043858CDa43FebAB710f948",
+  "LumiaDiamondModule#IDiamondCut": "0xD8BD0eaacDdA5478F043858CDa43FebAB710f948",
+  "LumiaDiamondModule#IHyperlaneHandler": "0xD8BD0eaacDdA5478F043858CDa43FebAB710f948",
+  "LumiaDiamondModule#IRealAssets": "0xD8BD0eaacDdA5478F043858CDa43FebAB710f948",
+  "LumiaDiamondModule#IStakeRedeemRoute": "0xD8BD0eaacDdA5478F043858CDa43FebAB710f948",
+  "LumiaDiamondModule#LumiaDiamondAcl": "0xD8BD0eaacDdA5478F043858CDa43FebAB710f948"
+}

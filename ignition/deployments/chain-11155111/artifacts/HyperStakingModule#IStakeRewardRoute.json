@@ -1,0 +1,160 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "IStakeRewardRoute",
+  "sourceName": "contracts/hyperstaking/interfaces/IStakeRewardRoute.sol",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "DestinationUnset",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "RecipientUnset",
+      "type": "error"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "mailbox",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "lumiaFactory",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint64",
+          "name": "nonce",
+          "type": "uint64"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "strategy",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "stake",
+          "type": "uint256"
+        }
+      ],
+      "name": "StakeRewardDispatched",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint64",
+              "name": "nonce",
+              "type": "uint64"
+            },
+            {
+              "internalType": "address",
+              "name": "strategy",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "stakeAdded",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct StakeRewardData",
+          "name": "data",
+          "type": "tuple"
+        }
+      ],
+      "name": "generateStakeRewardBody",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "body",
+          "type": "bytes"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint64",
+              "name": "nonce",
+              "type": "uint64"
+            },
+            {
+              "internalType": "address",
+              "name": "strategy",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "stakeAdded",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct StakeRewardData",
+          "name": "data",
+          "type": "tuple"
+        }
+      ],
+      "name": "quoteDispatchStakeReward",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint64",
+              "name": "nonce",
+              "type": "uint64"
+            },
+            {
+              "internalType": "address",
+              "name": "strategy",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "stakeAdded",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct StakeRewardData",
+          "name": "data",
+          "type": "tuple"
+        }
+      ],
+      "name": "stakeRewardDispatch",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

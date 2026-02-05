@@ -1,0 +1,85 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "NoOpHook",
+  "sourceName": "contracts/test/NoOpHook.sol",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "hookType",
+      "outputs": [
+        {
+          "internalType": "uint8",
+          "name": "",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        },
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        }
+      ],
+      "name": "postDispatch",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        },
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        }
+      ],
+      "name": "quoteDispatch",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        }
+      ],
+      "name": "supportsMetadata",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x6080604052348015600e575f5ffd5b506102018061001c5f395ff3fe60806040526004361061003e575f3560e01c8063086011b914610042578063aaccd23014610058578063e445e7dd1461008e578063e5320bb9146100a9575b5f5ffd5b610056610050366004610120565b50505050565b005b348015610063575f5ffd5b5061007b610072366004610120565b5f949350505050565b6040519081526020015b60405180910390f35b348015610099575f5ffd5b5060405160038152602001610085565b3480156100b4575f5ffd5b506100cb6100c336600461018c565b600192915050565b6040519015158152602001610085565b5f5f83601f8401126100eb575f5ffd5b50813567ffffffffffffffff811115610102575f5ffd5b602083019150836020828501011115610119575f5ffd5b9250929050565b5f5f5f5f60408587031215610133575f5ffd5b843567ffffffffffffffff811115610149575f5ffd5b610155878288016100db565b909550935050602085013567ffffffffffffffff811115610174575f5ffd5b610180878288016100db565b95989497509550505050565b5f5f6020838503121561019d575f5ffd5b823567ffffffffffffffff8111156101b3575f5ffd5b6101bf858286016100db565b9096909550935050505056fea264697066735822122052035240c02a05b6f58679da53f4eef2633e55bcc7f66400825cf2553ab9538464736f6c634300081b0033",
+  "deployedBytecode": "0x60806040526004361061003e575f3560e01c8063086011b914610042578063aaccd23014610058578063e445e7dd1461008e578063e5320bb9146100a9575b5f5ffd5b610056610050366004610120565b50505050565b005b348015610063575f5ffd5b5061007b610072366004610120565b5f949350505050565b6040519081526020015b60405180910390f35b348015610099575f5ffd5b5060405160038152602001610085565b3480156100b4575f5ffd5b506100cb6100c336600461018c565b600192915050565b6040519015158152602001610085565b5f5f83601f8401126100eb575f5ffd5b50813567ffffffffffffffff811115610102575f5ffd5b602083019150836020828501011115610119575f5ffd5b9250929050565b5f5f5f5f60408587031215610133575f5ffd5b843567ffffffffffffffff811115610149575f5ffd5b610155878288016100db565b909550935050602085013567ffffffffffffffff811115610174575f5ffd5b610180878288016100db565b95989497509550505050565b5f5f6020838503121561019d575f5ffd5b823567ffffffffffffffff8111156101b3575f5ffd5b6101bf858286016100db565b9096909550935050505056fea264697066735822122052035240c02a05b6f58679da53f4eef2633e55bcc7f66400825cf2553ab9538464736f6c634300081b0033",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

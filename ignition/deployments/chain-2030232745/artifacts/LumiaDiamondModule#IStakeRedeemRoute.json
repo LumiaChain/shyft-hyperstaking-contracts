@@ -1,0 +1,181 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "IStakeRedeemRoute",
+  "sourceName": "contracts/lumia-diamond/interfaces/IStakeRedeemRoute.sol",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "DestinationUnset",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "RecipientUnset",
+      "type": "error"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "mailbox",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "recipient",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint64",
+          "name": "nonce",
+          "type": "uint64"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "strategy",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "shares",
+          "type": "uint256"
+        }
+      ],
+      "name": "StakeRedeemDispatched",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint64",
+              "name": "nonce",
+              "type": "uint64"
+            },
+            {
+              "internalType": "address",
+              "name": "strategy",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "user",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "redeemAmount",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct StakeRedeemData",
+          "name": "data",
+          "type": "tuple"
+        }
+      ],
+      "name": "generateStakeRedeemBody",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "body",
+          "type": "bytes"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint64",
+              "name": "nonce",
+              "type": "uint64"
+            },
+            {
+              "internalType": "address",
+              "name": "strategy",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "user",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "redeemAmount",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct StakeRedeemData",
+          "name": "data",
+          "type": "tuple"
+        }
+      ],
+      "name": "quoteDispatchStakeRedeem",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint64",
+              "name": "nonce",
+              "type": "uint64"
+            },
+            {
+              "internalType": "address",
+              "name": "strategy",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "user",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "redeemAmount",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct StakeRedeemData",
+          "name": "data",
+          "type": "tuple"
+        }
+      ],
+      "name": "stakeRedeemDispatch",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}
