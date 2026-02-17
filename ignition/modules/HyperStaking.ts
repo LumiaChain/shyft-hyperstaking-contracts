@@ -20,6 +20,7 @@ const HyperStakingModule = buildModule("HyperStakingModule", (m) => {
 
   // --- facets
 
+  const aclFacet = m.contract("HyperStakingAcl");
   const aclInterface = getContractInterface("HyperStakingAcl");
   const aclInterfaceSelectors = getSelectors(aclInterface).remove(["supportsInterface(bytes4)"]);
 
@@ -59,10 +60,14 @@ const HyperStakingModule = buildModule("HyperStakingModule", (m) => {
 
   const cut = [
     {
+      facetAddress: aclFacet,
+      action: FacetCutAction.Add,
+      functionSelectors: aclInterfaceSelectors,
+    },
+    {
       facetAddress: depositFacet,
       action: FacetCutAction.Add,
-      // acl roles are applied to all facets, deposit facet is used here with no reason
-      functionSelectors: getSelectors(depositFacetInterface).add(aclInterfaceSelectors),
+      functionSelectors: getSelectors(depositFacetInterface),
     },
     {
       facetAddress: hyperFactoryFacet,

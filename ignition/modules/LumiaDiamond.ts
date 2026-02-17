@@ -17,6 +17,10 @@ const LumiaDiamondModule = buildModule("LumiaDiamondModule", (m) => {
 
   // --- facets
 
+  const aclFacet = m.contract("LumiaDiamondAcl");
+  const aclInterface = getContractInterface("LumiaDiamondAcl");
+  const aclInterfaceSelectors = getSelectors(aclInterface).remove(["supportsInterface(bytes4)"]);
+
   const hyperlaneHandlerFacet = m.contract("HyperlaneHandlerFacet");
   const hyperlaneHandlerInterface = getContractInterface("IHyperlaneHandler");
 
@@ -26,17 +30,18 @@ const LumiaDiamondModule = buildModule("LumiaDiamondModule", (m) => {
   const stakeRedeemRouteFacet = m.contract("StakeRedeemRoute");
   const stakeRedeemRouteInterface = getContractInterface("IStakeRedeemRoute");
 
-  const aclInterface = getContractInterface("LumiaDiamondAcl");
-  const aclInterfaceSelectors = getSelectors(aclInterface).remove(["supportsInterface(bytes4)"]);
-
   // --- cut struct
 
   const cut = [
     {
+      facetAddress: aclFacet,
+      action: FacetCutAction.Add,
+      functionSelectors: aclInterfaceSelectors,
+    },
+    {
       facetAddress: hyperlaneHandlerFacet,
       action: FacetCutAction.Add,
-      // acl roles are applied to all potential facets
-      functionSelectors: getSelectors(hyperlaneHandlerInterface).add(aclInterfaceSelectors),
+      functionSelectors: getSelectors(hyperlaneHandlerInterface),
     },
     {
       facetAddress: realAssetFacet,

@@ -1,5 +1,5 @@
 import { ethers } from "hardhat";
-import { FacetCutAction, printSelector, getSelectors } from "./libraries/diamond";
+import { FacetCutAction, printSelector } from "./libraries/diamond";
 import { diffFacetSelectors } from "./libraries/diamondLoupe";
 import { getContractInterface } from "./libraries/hardhat";
 import promptSync from "prompt-sync";
@@ -44,32 +44,6 @@ async function main() {
       OLD_FACET_ADDRESS,
       facetInterface,
     );
-
-  // ACL selectors are added to DepositFacet, so we should not remove them
-  if (FACET_CONTRACT_NAME === "DepositFacet") {
-    const aclInterface = getContractInterface("HyperStakingAcl");
-    const aclInterfaceSelectors = getSelectors(aclInterface).remove(["supportsInterface(bytes4)"]);
-
-    for (const selector of aclInterfaceSelectors) {
-      const index = removeSelectors.indexOf(selector);
-      if (index !== -1) {
-        removeSelectors.splice(index, 1);
-      }
-    }
-  }
-
-  // ACL selectors are added also on the Lumia Diamond to HyperlaneHandlerFacet
-  if (FACET_CONTRACT_NAME === "HyperlaneHandlerFacet") {
-    const aclInterface = getContractInterface("LumiaDiamondAcl");
-    const aclInterfaceSelectors = getSelectors(aclInterface).remove(["supportsInterface(bytes4)"]);
-
-    for (const selector of aclInterfaceSelectors) {
-      const index = removeSelectors.indexOf(selector);
-      if (index !== -1) {
-        removeSelectors.splice(index, 1);
-      }
-    }
-  }
 
   console.log("Selectors to add:", addSelectors.map((s) => printSelector(facetInterface, s)));
   console.log("Selectors to replace:", replaceSelectors.map((s) => printSelector(facetInterface, s)));
