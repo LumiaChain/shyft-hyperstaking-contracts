@@ -1,5 +1,5 @@
 {
-  "name": "HyperStaking-contracts",
+  "name": "shyft-HyperStaking-contracts",
   "scripts": {
     "test:unit": "npx hardhat test test/unit/*",
     "test:integration": "npm run test:integration:ethereum && npm run test:integration:base",

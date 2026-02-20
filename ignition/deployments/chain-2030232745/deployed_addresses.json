@@ -13,5 +13,7 @@
   "LumiaDiamondModule#IHyperlaneHandler": "0xD8BD0eaacDdA5478F043858CDa43FebAB710f948",
   "LumiaDiamondModule#IRealAssets": "0xD8BD0eaacDdA5478F043858CDa43FebAB710f948",
   "LumiaDiamondModule#IStakeRedeemRoute": "0xD8BD0eaacDdA5478F043858CDa43FebAB710f948",
-  "LumiaDiamondModule#LumiaDiamondAcl": "0xD8BD0eaacDdA5478F043858CDa43FebAB710f948"
+  "LumiaDiamondModule#LumiaDiamondAcl": "0xD8BD0eaacDdA5478F043858CDa43FebAB710f948",
+  "LumiaDiamondModule#HyperlaneHandlerFacet#v2": "0xB4309f9997EAe588aEC9df135aDc28866aa10315",
+  "LumiaDiamondModule#LumiaDiamondAclFacet#v2": "0xf080957499C38bE35aBB2af5709D5F7FC1B13770"
 }

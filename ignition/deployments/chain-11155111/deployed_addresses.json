@@ -33,5 +33,7 @@
   "ReserveStrategyModule#ERC1967Proxy": "0x3b89Acd8256CEf40F27ea21F734E92C57DE4BA4d",
   "ReserveStrategyModule#MockReserveStrategy": "0x3b89Acd8256CEf40F27ea21F734E92C57DE4BA4d",
   "TrustedRelayerIsmModule#TrustedRelayerIsm": "0xd709c251BC6Bb335f47839dd3bfdCB277865e3b5",
-  "NoOpHyperlaneHookModule#NoOpHook": "0xB71cCcF6D425d6fd306f4Cad41F50dBe3f135e6a"
+  "NoOpHyperlaneHookModule#NoOpHook": "0xB71cCcF6D425d6fd306f4Cad41F50dBe3f135e6a",
+  "HyperStakingModule#DepositFacet#v2": "0x04D2E13ad4d809001b22787Ad46E61cDBfe80ac3",
+  "HyperStakingModule#HyperStakingAclFacet#v2": "0xc7f01C8535efc740d230de70d95e204C5e03224A"
 }
