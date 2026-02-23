@@ -72,7 +72,7 @@ const LumiaDiamondModule = buildModule("LumiaDiamondModule", (m) => {
 
   // --- grant roles
 
-  const acl = m.contractAt("LumiaDiamondAcl", diamond);
+  const acl = m.contractAt("LumiaDiamondAcl", diamond, { id: "acl" });
   const LUMIA_FACTORY_MANAGER_ROLE = m.staticCall(
     acl, "LUMIA_FACTORY_MANAGER_ROLE", [], 0, { after: [diamondCutFuture] },
   );

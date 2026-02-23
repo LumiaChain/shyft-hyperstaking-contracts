@@ -29,7 +29,7 @@ const USDT_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
 
 // ----
 
-const fullyQualifiedIERC20 = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
+const qualifiedIERC20 = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
 
 describe("Swap Test Integration", function () {
   async function getMockedIntegrations() {
@@ -38,8 +38,8 @@ describe("Swap Test Integration", function () {
 
     // ------------------ USDC / USDT ------------------
 
-    const usdc = await ethers.getContractAt(fullyQualifiedIERC20, USDC_ADDRESS);
-    const usdt = await ethers.getContractAt(fullyQualifiedIERC20, USDT_ADDRESS);
+    const usdc = await ethers.getContractAt(qualifiedIERC20, USDC_ADDRESS);
+    const usdt = await ethers.getContractAt(qualifiedIERC20, USDT_ADDRESS);
 
     // Binance Hot Wallet hodling a lot of USDC and USDT
     const WHALE_ADDRESS = "0xF977814e90dA44bFA03b6295A0616a897441aceC";
@@ -101,7 +101,7 @@ describe("Swap Test Integration", function () {
 
     // transmuted ERC20 superUSDC token
     const superUSDC = await ethers.getContractAt(
-      fullyQualifiedIERC20,
+      qualifiedIERC20,
       transmutedTokenAddr,
     );
 

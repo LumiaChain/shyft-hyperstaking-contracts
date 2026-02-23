@@ -136,7 +136,7 @@ const HyperStakingModule = buildModule("HyperStakingModule", (m) => {
 
   // --- init facets
 
-  const acl = m.contractAt("HyperStakingAcl", diamond);
+  const acl = m.contractAt("HyperStakingAcl", diamond, { id: "acl" });
   const deposit = m.contractAt("IDeposit", diamond);
   const hyperFactory = m.contractAt("IHyperFactory", diamond);
   const allocation = m.contractAt("IAllocation", diamond);

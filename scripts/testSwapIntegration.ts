@@ -3,9 +3,9 @@ import { ethers, HardhatEthersSigner } from "hardhat";
 import { TestSwapIntegration } from "../typechain-types";
 
 import { processTx } from "./libraries/utils";
+import { qualifiedIERC20 } from "../test/shared";
 
 const stableUnits = (val: string) => parseUnits(val, 6);
-const fullyQualifiedIERC20 = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
 
 const TEST_SWAP_INTEGRATION_ADDRESS = "0x2aDdD9D895c966cDeBC7D666c8fAC2875b9dECCE";
 const SWAP_STRATEGY_ADDRESS = "0x74357ecd9c3D0C75D4F9B5e2954628EB8B9CD790";
@@ -67,7 +67,7 @@ async function allocateToSwapStrategy(
   amount: bigint,
   signer: HardhatEthersSigner,
 ) {
-  const usdt = await ethers.getContractAt(fullyQualifiedIERC20, USDT_ADDRESS);
+  const usdt = await ethers.getContractAt(qualifiedIERC20, USDT_ADDRESS);
 
   // Approve the integration to spend USDT
   let tx = await usdt.connect(signer).approve(testSwapIntegration, amount);
@@ -87,7 +87,7 @@ async function exitFromSwapStrategy(
   const swapStrategy = await ethers.getContractAt("SwapSuperStrategy", SWAP_STRATEGY_ADDRESS);
   const superUSDCAddress = await swapStrategy.revenueAsset();
 
-  const superUSDC = await ethers.getContractAt(fullyQualifiedIERC20, superUSDCAddress);
+  const superUSDC = await ethers.getContractAt(qualifiedIERC20, superUSDCAddress);
   const superAmount = await superUSDC.balanceOf(signer);
 
   // Approve the integration to spend USDT

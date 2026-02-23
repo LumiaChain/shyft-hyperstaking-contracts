@@ -108,11 +108,21 @@ async function cmdSetStrategyAssetPrice() {
   const { signers, testStrategy } = await getContracts();
   const { strategyManager } = signers;
 
-  const newPrice = parseEther("2.0"); // new price in ETH +100% from 1 ETH
-
-  console.log(
-    `Setting new asset price for strategy ${testStrategy.target} to ${formatEther(newPrice)}...`,
+  // get revenue asset decimals to build correct reference amount
+  const revenueAsset = await ethers.getContractAt(
+    shared.qualifiedIERC20Metadata,
+    await testStrategy.revenueAsset(),
   );
+  const decimals = await revenueAsset.decimals();
+
+  // use 1 unit of revenue asset
+  const referenceAmount = parseUnits("1", decimals);
+  const currentPrice = await testStrategy.previewExit(referenceAmount);
+  const newPrice = currentPrice * 105n / 100n; // increase by 5%
+
+  console.log(`Revenue asset: ${await revenueAsset.symbol()} (${decimals} decimals)`);
+  console.log(`Current implied price: ${formatEther(currentPrice)}`);
+  console.log(`Setting new asset price to ${formatEther(newPrice)} (+5%)...`);
 
   const tx = await testStrategy.connect(strategyManager).setAssetPrice(newPrice);
   await processTx(tx, "Set Strategy Asset Price");
@@ -266,17 +276,43 @@ async function cmdSetLumiaMailbox() {
 // --- Main Operations Commands ---
 
 async function cmdReportRevenue() {
-  const { signers, testStrategy, allocation } = await getContracts();
+  const { signers, testStrategy, allocation, hyperFactory } = await getContracts();
   const { vaultManager } = signers;
 
-  console.log(`Reporting revenue for strategy ${testStrategy.target}...`);
+  // gather info
+  const [si, vaultInfo, revenue, dispatchFee] = await Promise.all([
+    allocation.stakeInfo(testStrategy),
+    hyperFactory.vaultInfo(testStrategy),
+    allocation.checkRevenue(testStrategy),
+    allocation.quoteReport(testStrategy),
+  ]);
 
-  const stakeAdded = await allocation.checkRevenue(testStrategy.target);
-  console.log("Stake added from revenue:", formatEther(stakeAdded));
+  const totalPossibleStake = await testStrategy.previewExit(si.totalAllocation);
+  const bridgeCollateral = si.totalStake;
 
-  const dispatchFee = await allocation.quoteReport(testStrategy.target);
+  // feeRate uses 1e18 precision
+  const PERCENT_PRECISION = parseEther("1");
+  const feeAmount = vaultInfo.feeRate * revenue / PERCENT_PRECISION;
+  const stakeAdded = revenue - feeAmount;
 
-  console.log("Dispatch fee for reporting revenue:", formatEther(dispatchFee));
+  console.log("=== Report Revenue ===");
+  console.log("Strategy:", testStrategy.target);
+  console.log("Bridge collateral (totalStake):", bridgeCollateral);
+  console.log("Total possible stake (previewExit):", totalPossibleStake);
+  console.log("Expected revenue:", revenue);
+
+  if (revenue === 0n) {
+    console.log("No revenue to report. Skipping transaction.");
+    return;
+  }
+
+  console.log("---");
+  console.log("Fee rate:", (vaultInfo.feeRate * 100n / PERCENT_PRECISION) + "%");
+  console.log("Fee amount:", feeAmount);
+  console.log("Fee recipient:", vaultInfo.feeRecipient);
+  console.log("Stake added after fee:", stakeAdded);
+  console.log("Dispatch fee:", formatEther(dispatchFee));
+  console.log("---");
 
   const tx = await allocation.connect(vaultManager).report(
     testStrategy,
