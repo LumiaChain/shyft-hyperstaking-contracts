@@ -35,5 +35,10 @@
   "TrustedRelayerIsmModule#TrustedRelayerIsm": "0xd709c251BC6Bb335f47839dd3bfdCB277865e3b5",
   "NoOpHyperlaneHookModule#NoOpHook": "0xB71cCcF6D425d6fd306f4Cad41F50dBe3f135e6a",
   "HyperStakingModule#DepositFacet#v2": "0x04D2E13ad4d809001b22787Ad46E61cDBfe80ac3",
-  "HyperStakingModule#HyperStakingAclFacet#v2": "0xc7f01C8535efc740d230de70d95e204C5e03224A"
+  "HyperStakingModule#HyperStakingAclFacet#v2": "0xc7f01C8535efc740d230de70d95e204C5e03224A",
+  "TestUsdStrategyModule#UsdStakeToken": "0xC6ED8F7Af26678b99a8F179D590f7dd4E0CB2816",
+  "TestUsdStrategyModule#UsdYieldToken": "0x79bC5ED81481505bd796A5a051D5C672Cc3Bd716",
+  "TestUsdStrategyModule#impl": "0x57D34eF28E5a7f8Bbb30C82AbEC304f5EC7E7471",
+  "TestUsdStrategyModule#ERC1967Proxy": "0xaB8d2ca258cF3EEF3dbEDa6158406F1D0F84cd41",
+  "TestUsdStrategyModule#MockReserveStrategy": "0xaB8d2ca258cF3EEF3dbEDa6158406F1D0F84cd41"
 }
