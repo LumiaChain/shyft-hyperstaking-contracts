@@ -62,8 +62,8 @@ async function main() {
       OLD_FACET_ADDRESS,
       facetInterface,
     );
-    addSelectors = diff.addSelectors;
-    replaceSelectors = diff.replaceSelectors;
+    addSelectors = diff.addSelectors.filter(s => !EXCLUDE_SELECTORS.includes(s));
+    replaceSelectors = diff.replaceSelectors.filter(s => !EXCLUDE_SELECTORS.includes(s));
     removeSelectors = diff.removeSelectors;
   } else {
     addSelectors = getSelectors(facetInterface).remove(EXCLUDE_SELECTORS);
