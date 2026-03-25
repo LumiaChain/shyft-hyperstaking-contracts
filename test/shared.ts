@@ -27,11 +27,13 @@ import { SingleDirectSingleVaultStateReqStruct } from "../typechain-types/contra
 import { WithdrawClaimStruct } from "../typechain-types/contracts/hyperstaking/interfaces/IDeposit";
 
 // full - because there are two differnet vesions of IERC20 used in the project
-export const fullyQualifiedIERC20 = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
+const ozErc20Path = "@openzeppelin/contracts/token/ERC20";
+export const qualifiedIERC20 = `${ozErc20Path}/IERC20.sol:IERC20`;
+export const qualifiedIERC20Metadata = `${ozErc20Path}/extensions/IERC20Metadata.sol:IERC20Metadata`;
 
 export async function toIERC20(contractAddr: Addressable | string): Promise<IERC20> {
   return await ethers.getContractAt(
-    fullyQualifiedIERC20,
+    qualifiedIERC20,
     contractAddr,
   ) as unknown as IERC20;
 }
@@ -66,7 +68,7 @@ export function erc20Currency(token: string): CurrencyStruct {
 // -------------------- Deployment Helpers --------------------
 
 export async function deploySuperformMock(erc4626Vault: Contract) {
-  const testUSDC = await ethers.getContractAt(fullyQualifiedIERC20, await erc4626Vault.asset());
+  const testUSDC = await ethers.getContractAt(qualifiedIERC20, await erc4626Vault.asset());
 
   // --- set TokenizedStrategy code on a given address ---
 
@@ -151,7 +153,7 @@ export async function createReserveStrategy(
 
   const reserveStrategySupply = parseEther("50");
 
-  const asset = (await ethers.getContractAt(fullyQualifiedIERC20, assetAddress)) as unknown as IERC20;
+  const asset = (await ethers.getContractAt(qualifiedIERC20, assetAddress)) as unknown as IERC20;
 
   await asset.transfer(strategyManager, reserveStrategySupply); // owner -> strategyManager
   await asset.connect(strategyManager).approve(reserveStrategy.target, reserveStrategySupply);

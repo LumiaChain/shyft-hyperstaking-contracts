@@ -30,6 +30,9 @@
     "symbol": "tETHy",
     "decimals": "18"
   },
+  "TestUsdStrategyModule": {
+    "diamond": "0x3bBD53e9f098247A1C7989d5E1E780eF98DDC66C"
+  },
   "TrustedRelayerIsmModule": {
     "mailbox": "0xfFAEF09B3cd11D9b20d1a19bECca54EEC2884766",
     "trustedRelayer": "0x7071a60eec11e1305e3faeebd025d2c64a6ebc80"
@@ -38,6 +41,7 @@
     "diamond": "0x3bBD53e9f098247A1C7989d5E1E780eF98DDC66C",
     "testEthYieldToken": "0xbbb2ffA15Cd48cc2A1D21Ae4d737D80198fCAf62",
     "testReserveStrategy": "0x3b89Acd8256CEf40F27ea21F734E92C57DE4BA4d",
+    "testUSDStrategy": "0xaB8d2ca258cF3EEF3dbEDa6158406F1D0F84cd41",
     "lockboxDestination": 2030232745,
     "lockboxLumiaFactory": "0xD8BD0eaacDdA5478F043858CDa43FebAB710f948",
     "lockboxISM": "0xd709c251BC6Bb335f47839dd3bfdCB277865e3b5",

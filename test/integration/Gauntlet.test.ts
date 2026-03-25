@@ -19,7 +19,7 @@ describe("Test Gauntlet Strategy", function () {
   async function getAeraIntegration() {
     const signers = await shared.getSigners();
 
-    const usdc = await ethers.getContractAt(shared.fullyQualifiedIERC20, USDC_ADDRESS);
+    const usdc = await ethers.getContractAt(shared.qualifiedIERC20, USDC_ADDRESS);
     const gtUSDa = await ethers.getContractAt("MultiDepositorVault", GTUSDA_ADDRESS);
 
     // give whale 1 ETH

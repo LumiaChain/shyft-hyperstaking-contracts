@@ -1,5 +1,5 @@
 import { ethers } from "hardhat";
-import { parseUnits, parseEther, formatEther } from "ethers";
+import { parseUnits, parseEther, formatEther, formatUnits } from "ethers";
 import { sendEther, sendToken, processTx } from "./libraries/utils";
 import * as shared from "../test/shared";
 
@@ -11,8 +11,10 @@ import * as lumiaAddresses from "../ignition/parameters.lumia_beam.json";
 // CLI Configuration
 const CLI_CONFIG = {
   DEFAULT_COMMAND: "info",
-  DEFAULT_STRATEGY_NAME: "Test Native Strategy",
-  DEFAULT_STRATEGY_SYMBOL: "tETH1",
+  // DEFAULT_STRATEGY_ADDRESS: originAddresses.General.testReserveStrategy,
+  DEFAULT_STRATEGY_ADDRESS: originAddresses.General.testUSDStrategy,
+  DEFAULT_STRATEGY_NAME: "Test USD Strategy",
+  DEFAULT_STRATEGY_SYMBOL: "tUSD1",
   DEFAULT_FEE_RATE: parseEther("0.02"), // 2%
 } as const;
 
@@ -23,12 +25,21 @@ async function getContracts() {
 
   const testStrategy = await ethers.getContractAt(
     "MockReserveStrategy",
-    originAddresses.General.testReserveStrategy,
+    CLI_CONFIG.DEFAULT_STRATEGY_ADDRESS,
   );
 
-  const ethYieldToken = await ethers.getContractAt(
-    "TestERC20",
-    originAddresses.General.testEthYieldToken,
+  const stakeCurrency = await testStrategy.stakeCurrency();
+
+  // precision for stake amount
+  const isNative = stakeCurrency.token === ethers.ZeroAddress;
+  const stakeDecimals = isNative
+    ? 18
+    : await (await ethers.getContractAt(shared.qualifiedIERC20Metadata, stakeCurrency.token)).decimals();
+
+  // revenue asset is the yield token - derived from strategy
+  const revenueAsset = await ethers.getContractAt(
+    shared.qualifiedIERC20Metadata,
+    await testStrategy.revenueAsset(),
   );
 
   const diamond = originAddresses.General.diamond;
@@ -42,7 +53,9 @@ async function getContracts() {
     diamond,
     signers,
     testStrategy,
-    ethYieldToken,
+    stakeCurrency,
+    stakeDecimals,
+    revenueAsset,
     hyperFactory,
     deposit,
     allocation,
@@ -105,40 +118,52 @@ async function cmdAddStrategy() {
 }
 
 async function cmdSetStrategyAssetPrice() {
-  const { signers, testStrategy } = await getContracts();
+  const { signers, testStrategy, revenueAsset, stakeDecimals } = await getContracts();
   const { strategyManager } = signers;
 
-  const newPrice = parseEther("2.0"); // new price in ETH +100% from 1 ETH
+  // get revenue asset decimals to build correct reference amount
+  const decimals = await revenueAsset.decimals();
 
-  console.log(
-    `Setting new asset price for strategy ${testStrategy.target} to ${formatEther(newPrice)}...`,
-  );
+  // use 1 unit of revenue asset
+  const referenceAmount = parseUnits("1", decimals);
+  const stakeOut = await testStrategy.previewExit(referenceAmount);
+
+  const currentPrice = stakeOut; // price in terms of stake currency
+  const newPrice = currentPrice * 105n / 100n; // increase by 5%
+
+  console.log(`Revenue asset: ${await revenueAsset.symbol()} (${decimals} decimals)`);
+  console.log(`Current implied price: ${formatUnits(currentPrice, stakeDecimals)}`);
+  console.log(`Setting new asset price to ${formatUnits(newPrice, stakeDecimals)} (+5%)...`);
 
   const tx = await testStrategy.connect(strategyManager).setAssetPrice(newPrice);
   await processTx(tx, "Set Strategy Asset Price");
 }
 
 async function cmdSupplyStrategy() {
-  // hardcoded values for simplicity
-  const amountRaw = 1000; // amount of yield tokens (without decimals);
-  const decimals = 18;
-
-  const amount = parseUnits(amountRaw.toString(), decimals);
-
-  const { signers, testStrategy, ethYieldToken } = await getContracts();
+  const { signers, testStrategy, revenueAsset } = await getContracts();
   const { owner, strategyManager } = signers;
 
+  // hardcoded value for simplicity
+  const amountRaw = 1000; // amount of yield tokens (without decimals);
+
+  const decimals = await revenueAsset.decimals();
+  const amount = parseUnits(amountRaw.toString(), decimals);
+
   console.log(
-    `Supplying ${amountRaw} of asset ${ethYieldToken.target} to testStrategy...`,
+    `Supplying ${amountRaw} of asset ${revenueAsset.target} to testStrategy...`,
   );
 
   let tx;
 
   // mint yield tokens to strategyManager
-  tx = await ethYieldToken.connect(owner).mint(strategyManager, amount);
+  // (assuming the token has mint function and owner has minting role)
+  const revenueAssetMintable = await ethers.getContractAt(
+    "TestERC20", revenueAsset.target,
+  );
+  tx = await revenueAssetMintable.connect(owner).mint(strategyManager, amount);
   await processTx(tx, "Mint yield tokens to strategyManager");
 
-  tx = await ethYieldToken.connect(strategyManager).approve(
+  tx = await revenueAsset.connect(strategyManager).approve(
     testStrategy,
     amount,
   );
@@ -266,17 +291,43 @@ async function cmdSetLumiaMailbox() {
 // --- Main Operations Commands ---
 
 async function cmdReportRevenue() {
-  const { signers, testStrategy, allocation } = await getContracts();
+  const { signers, testStrategy, allocation, hyperFactory } = await getContracts();
   const { vaultManager } = signers;
 
-  console.log(`Reporting revenue for strategy ${testStrategy.target}...`);
+  // gather info
+  const [si, vaultInfo, revenue, dispatchFee] = await Promise.all([
+    allocation.stakeInfo(testStrategy),
+    hyperFactory.vaultInfo(testStrategy),
+    allocation.checkRevenue(testStrategy),
+    allocation.quoteReport(testStrategy),
+  ]);
 
-  const stakeAdded = await allocation.checkRevenue(testStrategy.target);
-  console.log("Stake added from revenue:", formatEther(stakeAdded));
+  const totalPossibleStake = await testStrategy.previewExit(si.totalAllocation);
+  const bridgeCollateral = si.totalStake;
 
-  const dispatchFee = await allocation.quoteReport(testStrategy.target);
+  // feeRate uses 1e18 precision
+  const PERCENT_PRECISION = parseEther("1");
+  const feeAmount = vaultInfo.feeRate * revenue / PERCENT_PRECISION;
+  const stakeAdded = revenue - feeAmount;
 
-  console.log("Dispatch fee for reporting revenue:", formatEther(dispatchFee));
+  console.log("=== Report Revenue ===");
+  console.log("Strategy:", testStrategy.target);
+  console.log("Bridge collateral (totalStake):", bridgeCollateral);
+  console.log("Total possible stake (previewExit):", totalPossibleStake);
+  console.log("Expected revenue:", revenue);
+
+  if (revenue === 0n) {
+    console.log("No revenue to report. Skipping transaction.");
+    return;
+  }
+
+  console.log("---");
+  console.log("Fee rate:", (vaultInfo.feeRate * 100n / PERCENT_PRECISION) + "%");
+  console.log("Fee amount:", feeAmount);
+  console.log("Fee recipient:", vaultInfo.feeRecipient);
+  console.log("Stake added after fee:", stakeAdded);
+  console.log("Dispatch fee:", formatEther(dispatchFee));
+  console.log("---");
 
   const tx = await allocation.connect(vaultManager).report(
     testStrategy,
@@ -287,11 +338,15 @@ async function cmdReportRevenue() {
 }
 
 async function cmdStakeDeposit() {
-  const { signers, deposit, testStrategy } = await getContracts();
+  const { signers, deposit, testStrategy, stakeCurrency, stakeDecimals } = await getContracts();
   const { alice } = signers;
 
-  const stakeAmount = parseEther("0.05");
-  console.log(`Staking deposit of ${formatEther(stakeAmount)} ETH for strategy ${testStrategy.target}...`);
+  const isNative = stakeCurrency.token === ethers.ZeroAddress;
+
+  const stakeAmount = parseUnits("0.5", stakeDecimals);
+
+  console.log(`Staking deposit of ${formatUnits(stakeAmount, stakeDecimals)} for strategy ${testStrategy.target}...`);
+  console.log(`Stake currency: ${isNative ? "native ETH" : stakeCurrency.token}`);
 
   const dispatchFee = await deposit.quoteDepositDispatch(
     testStrategy,
@@ -301,12 +356,31 @@ async function cmdStakeDeposit() {
 
   console.log("Dispatch fee for staking deposit:", formatEther(dispatchFee));
 
-  const tx = await deposit.connect(alice).deposit(
-    testStrategy,
-    alice,
-    stakeAmount,
-    { value: stakeAmount + dispatchFee },
-  );
+  let tx;
+
+  if (isNative) {
+    tx = await deposit.connect(alice).deposit(
+      testStrategy,
+      alice,
+      stakeAmount,
+      { value: stakeAmount + dispatchFee },
+    );
+  } else {
+    // ERC20 stake: approve diamond to pull tokens, dispatch fee paid separately in ETH
+    const stakeToken = await ethers.getContractAt(shared.qualifiedIERC20, stakeCurrency.token);
+
+    await processTx(
+      await stakeToken.connect(alice).approve(deposit.target, stakeAmount),
+      "Approve stake token to diamond",
+    );
+
+    tx = await deposit.connect(alice).deposit(
+      testStrategy,
+      alice,
+      stakeAmount,
+      { value: dispatchFee },
+    );
+  }
 
   await processTx(tx, "Stake Deposit");
 }
@@ -383,7 +457,7 @@ async function cmdClaimWithdraw() {
 
 async function cmdInfo() {
   const {
-    diamond, signers, testStrategy, ethYieldToken, deposit, allocation, hyperFactory, lockbox,
+    diamond, signers, testStrategy, revenueAsset, deposit, allocation, hyperFactory, lockbox,
   } = await getContracts();
 
   const { owner, strategyManager, vaultManager, alice } = signers;
@@ -396,13 +470,14 @@ async function cmdInfo() {
   const vaultManagerEthBalance = await ethers.provider.getBalance(vaultManager);
 
   // yield token balances
-  const strategyBalance = await ethYieldToken.balanceOf(testStrategy);
-  const diamondBalance = await ethYieldToken.balanceOf(diamond);
+  const revenueAssetDecimals = await revenueAsset.decimals();
+  const strategyBalance = await revenueAsset.balanceOf(testStrategy);
+  const diamondBalance = await revenueAsset.balanceOf(diamond);
 
   console.log("=== Info ===");
   console.log("testStrategy:", testStrategy.target);
   console.log("depositFacet (diamond):", deposit.target);
-  console.log("ethYieldToken:", ethYieldToken.target);
+  console.log("revenueAsset:", revenueAsset.target);
 
   console.log("owner:", owner.address);
   console.log("strategyManager:", strategyManager.address);
@@ -417,8 +492,8 @@ async function cmdInfo() {
   console.log("Native ETH balance (vaultManager):", formatEther(vaultManagerEthBalance));
   console.log("Native ETH balance (alice):", formatEther(aliceEthBalance));
 
-  console.log("ethYieldToken balance (testStrategy):", formatEther(strategyBalance));
-  console.log("ethYieldToken balance (diamond):", formatEther(diamondBalance));
+  console.log("revenueAsset balance (testStrategy):", formatUnits(strategyBalance, revenueAssetDecimals));
+  console.log("revenueAsset balance (diamond):", formatUnits(diamondBalance, revenueAssetDecimals));
 
   console.log("==============");
 
